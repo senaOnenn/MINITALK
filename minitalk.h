@@ -14,8 +14,8 @@
 # define MINITALK_H
 
 # include <signal.h>
-# include <stdlib.h>
 # include <unistd.h>
+# include <sys/types.h>
 
 int		ft_atoi(char *str);
 void	send_signal(int server_pid, char c);

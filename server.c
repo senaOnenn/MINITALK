@@ -12,17 +12,24 @@
 
 #include "minitalk.h"
 
-void	handle_signal(int signal)
+void	handle_signal(int signal, siginfo_t *info, void *context)
 {
 	static char	character;
 	static int	current_bit;
 
+	(void)context;
+	
 	if (signal == SIGUSR2)
 		character = character | 1;
+	
 	current_bit++;
+	
 	if (current_bit == 8)
 	{
-		write(1, &character, 1);
+		if (character == '\0')
+			write(1, "\n", 1);
+		else
+			write(1, &character, 1);
 		character = 0;
 		current_bit = 0;
 	}
@@ -30,6 +37,9 @@ void	handle_signal(int signal)
 	{
 		character <<= 1;
 	}
+	
+	// Client'a ACK sinyali gönder
+	kill(info->si_pid, SIGUSR1);
 }
 
 void	write_pid(int pid)
@@ -51,13 +61,31 @@ void	write_pid(int pid)
 
 int	main(void)
 {
-	int	pid;
+	int					pid;
+	struct sigaction	sa;
 
-	write(1, "Server PID: ", 13);
+	write(1, "Server PID: ", 12);
 	pid = getpid();
 	write_pid(pid);
-	signal(SIGUSR1, handle_signal);
-	signal(SIGUSR2, handle_signal);
+	write(1, "\n", 1);
+
+	// sigaction yapısını ayarla
+	sigemptyset(&sa.sa_mask);
+	sigaddset(&sa.sa_mask, SIGUSR1);
+	sigaddset(&sa.sa_mask, SIGUSR2);
+	sa.sa_sigaction = handle_signal;
+	sa.sa_flags = SA_SIGINFO | SA_RESTART;
+
+	// Signal handler'ları kaydet
+	if (sigaction(SIGUSR1, &sa, NULL) == -1 || 
+		sigaction(SIGUSR2, &sa, NULL) == -1)
+	{
+		write(1, "Error: sigaction failed\n", 24);
+		return (1);
+	}
+
+	write(1, "Server is ready to receive messages...\n", 40);
+	
 	while (1)
 		pause();
 }
