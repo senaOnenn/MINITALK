@@ -6,15 +6,13 @@
 /*   By: eonen <eonen@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/14 14:30:01 by eonen             #+#    #+#             */
-/*   Updated: 2025/09/14 18:36:35 by eonen            ###   ########.fr       */
+/*   Updated: 2025/09/21 17:25:08 by eonen            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-#include "minitalk.h"
-
-volatile sig_atomic_t g_ack_received = 0;
+volatile sig_atomic_t	g_ack_received = 0;
 
 int	ft_atoi(char *str)
 {
@@ -31,13 +29,13 @@ int	ft_atoi(char *str)
 	return (result);
 }
 
-void	ack_handler(int signal)
+void	ack_handler(int sig)
 {
-	(void)signal;
+	(void)sig;
 	g_ack_received = 1;
 }
 
-void	send_signal(int server_pid, char c)
+void	send_char(int pid, char c)
 {
 	int	i;
 
@@ -46,22 +44,30 @@ void	send_signal(int server_pid, char c)
 	{
 		g_ack_received = 0;
 		if ((c >> (7 - i)) & 1)
-			kill(server_pid, SIGUSR2);
+			kill(pid, SIGUSR2);
 		else
-			kill(server_pid, SIGUSR1);
-		
-		// ACK sinyali bekle
+			kill(pid, SIGUSR1);
+
 		while (!g_ack_received)
 			pause();
-		
 		i++;
 	}
 }
 
+int	ft_strlen(char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+		i++;
+	return (i);
+}
+
 int	main(int argc, char **argv)
 {
+	int					pid;
 	int					i;
-	int					server_pid;
 	struct sigaction	sa;
 
 	if (argc != 3)
@@ -70,29 +76,23 @@ int	main(int argc, char **argv)
 		return (1);
 	}
 
-	// sigaction yapısını ayarla
+	pid = ft_atoi(argv[1]);
+	if (pid <= 0 || pid > 4194304 || ft_strlen(argv[1]) > 8)
+		write(1,"Error: Invalid PID!\n",21);
 	sigemptyset(&sa.sa_mask);
 	sa.sa_handler = ack_handler;
 	sa.sa_flags = SA_RESTART;
-	
-	// ACK sinyali için handler'ı kaydet
-	if (sigaction(SIGUSR1, &sa, NULL) == -1 || 
-		sigaction(SIGUSR2, &sa, NULL) == -1)
-	{
+
+	if (sigaction(SIGUSR1, &sa, NULL) == -1)
 		write(1, "Error: sigaction failed\n", 24);
-		return (1);
-	}
 
 	i = 0;
-	server_pid = ft_atoi(argv[1]);
-	
 	while (argv[2][i])
 	{
-		send_signal(server_pid, argv[2][i]);
+		send_char(pid, argv[2][i]);
 		i++;
 	}
-	send_signal(server_pid, '\0');
-	
-	write(1, "Message sent successfully!\n", 27);
+	send_char(pid, '\0');
+
 	return (0);
 }
