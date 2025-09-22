@@ -1,29 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   minitalk.h                                         :+:      :+:    :+:   */
+/*   utils_client.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: eonen <eonen@student.42istanbul.com.tr     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/22 16:07:16 by eonen             #+#    #+#             */
-/*   Updated: 2025/09/22 17:26:54 by eonen            ###   ########.fr       */
+/*   Created: 2025/09/22 17:15:31 by eonen             #+#    #+#             */
+/*   Updated: 2025/09/22 17:16:11 by eonen            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MINITALK_H
-# define MINITALK_H
+#include "minitalk.h"
 
-# include <signal.h>
-# include <sys/types.h>
-# include <unistd.h>
-#include <stdlib.h>
+int	ft_strlen(char *str)
+{
+	int	i;
 
-int		ft_atoi(char *str);
-int		ft_strlen(char *str);
-void	ack_handler(int sig);
-void	send_char(int pid, char c);
-void	send_message(int pid, char *message);
-void	handle_signal(int sig, siginfo_t *info, void *context);
-void	write_pid(int pid);
+	i = 0;
+	while (str[i])
+		i++;
+	return (i);
+}
 
-#endif
+int	ft_atoi(char *str)
+{
+	int	i;
+	int	result;
+
+	i = 0;
+	result = 0;
+	while (str[i] >= '0' && str[i] <= '9')
+	{
+		result = result * 10 + (str[i] - '0');
+		i++;
+	}
+	return (result);
+}

@@ -1,7 +1,7 @@
 NAME_SERVER = server
 NAME_CLIENT = client
 SRC_SERVER = server.c
-SRC_CLIENT = client.c
+SRC_CLIENT = client.c utils_client.c
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
 
